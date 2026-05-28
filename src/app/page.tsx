@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { RegionBigCard, RegionSubCard } from '@/components/RegionCard';
 import type { Region } from '@/types';
 
 const MOCK_REGIONS: Region[] = [
@@ -8,20 +9,6 @@ const MOCK_REGIONS: Region[] = [
   { id: 'itaewon', name: '이태원·한남', district: '서울 용산구', hot_score: 76.5, trend_direction: 'up', place_count: 97, image_url: null, updated_at: '' },
   { id: 'yeonnam', name: '연남·망원', district: '서울 마포구', hot_score: 71.3, trend_direction: 'down', place_count: 83, image_url: null, updated_at: '' },
 ];
-
-const TREND_LABEL: Record<Region['trend_direction'], string> = {
-  up: '↑ 급상승',
-  down: '↓ 하락',
-  stable: '→ 유지',
-};
-
-const REGION_GRADIENT: Record<string, string> = {
-  seongsu: 'g-seongsu',
-  hongdae: 'g-hongdae',
-  gangnam: 'g-gangnam',
-  itaewon: 'g-itaewon',
-  yeonnam: 'g-yeonnam',
-};
 
 export default function HomePage() {
   const [top, ...rest] = MOCK_REGIONS;
@@ -41,7 +28,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 서브 타이틀 */}
       <div className="px-5 pb-4 mt-1">
         <p className="text-[13px] text-gray-400 leading-snug">
           실시간 데이터로 뽑은<br />
@@ -49,56 +35,16 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24">
-
-        {/* 1위 빅 카드 */}
-        <Link href={`/region/${top.id}`}>
-          <div
-            className={`pressable ${REGION_GRADIENT[top.id]} rounded-[1.75rem] overflow-hidden shadow-md relative`}
-            style={{ aspectRatio: '4/3' }}
-          >
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent 55%)' }} />
-            <div className="absolute top-4 left-4 flex gap-2 z-10">
-              <span className="bg-black/30 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full">🔥 1위</span>
-              <span className="bg-black/20 backdrop-blur-sm text-white text-[11px] px-2.5 py-1 rounded-full">
-                {TREND_LABEL[top.trend_direction]}
-              </span>
-            </div>
-            <div className="absolute top-4 right-4 z-10">
-              <span className="text-white/50 text-[11px]">{top.place_count}곳</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-              <p className="text-white/60 text-[11px] font-medium tracking-wide uppercase mb-0.5">{top.district}</p>
-              <h2 className="text-white text-[28px] font-black tracking-tight leading-none">{top.name}</h2>
-            </div>
-          </div>
-        </Link>
+        {/* 1위 빅카드 */}
+        <RegionBigCard region={top} rank={1} />
 
         {/* 2~5위 가로 스크롤 */}
         <div className="mt-4">
-          <div className="flex items-center justify-between mb-2.5">
-            <p className="text-[13px] font-bold text-gray-900">그 외 핫플</p>
-          </div>
+          <p className="text-[13px] font-bold text-gray-900 mb-2.5">그 외 핫플</p>
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
             {rest.map((region, i) => (
-              <Link key={region.id} href={`/region/${region.id}`} className="flex-shrink-0 w-32 pressable">
-                <div
-                  className={`${REGION_GRADIENT[region.id]} rounded-2xl overflow-hidden shadow-md relative`}
-                  style={{ aspectRatio: '3/4' }}
-                >
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%)' }} />
-                  <div className="absolute top-2.5 left-2.5 z-10">
-                    <span className="bg-black/25 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {i + 2}위
-                    </span>
-                  </div>
-                  <div className="absolute bottom-0 p-2.5 z-10">
-                    <p className="text-white text-sm font-black leading-tight">{region.name}</p>
-                    <p className="text-white/60 text-[10px] mt-0.5">{region.place_count}곳</p>
-                  </div>
-                </div>
-              </Link>
+              <RegionSubCard key={region.id} region={region} rank={i + 2} />
             ))}
           </div>
         </div>
