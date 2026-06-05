@@ -62,8 +62,14 @@ const MOCK_PLACES: Record<string, Place[]> = {
 export function usePlacesByRegion(regionId: string) {
   return useQuery<Place[]>({
     queryKey: ['places', regionId],
-    queryFn: () => fetchPlaces(regionId),
+    queryFn: async () => {
+      try {
+        const places = await fetchPlaces(regionId);
+        return places.length > 0 ? places : (MOCK_PLACES[regionId] ?? []);
+      } catch {
+        return MOCK_PLACES[regionId] ?? [];
+      }
+    },
     staleTime: 1000 * 60 * 10,
-    placeholderData: MOCK_PLACES[regionId] ?? [],
   });
 }
