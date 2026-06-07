@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import KakaoMapDynamic from '@/components/KakaoMapDynamic';
 import { usePlacesByRegion } from '@/hooks/usePlacesByRegion';
+import { SaveButton } from '@/components/SaveButton';
 
 const REGION_GRADIENT: Record<string, string> = {
   seongsu: 'g-seongsu',
@@ -117,14 +118,9 @@ function PlaceDetailContent({ placeId }: { placeId: string }) {
         </div>
       </div>
 
-      {/* 저장 버튼 (Feature 6-B에서 구현) */}
+      {/* 저장 버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 py-4 bg-white/90 backdrop-blur-sm border-t border-gray-100 z-30">
-        <button
-          type="button"
-          className="w-full py-3.5 bg-gray-900 text-white font-bold text-[15px] rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
-        >
-          저장하기
-        </button>
+        <SaveButton placeId={placeId} />
       </div>
     </div>
   );
