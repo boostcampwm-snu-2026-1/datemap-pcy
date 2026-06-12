@@ -2,32 +2,34 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { localSavedIds } from '@/lib/localSavedStore';
+import { localSavedPlaces } from '@/lib/localSavedStore';
+import type { Place } from '@/types';
 
 export function useSaveMutation() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
   return useMutation({
-    mutationFn: async (placeId: string) => {
-      if (localSavedIds.has(placeId)) {
-        localSavedIds.delete(placeId);
+    mutationFn: async (place: Place) => {
+      const idx = localSavedPlaces.findIndex((p) => p.id === place.id);
+      if (idx >= 0) {
+        localSavedPlaces.splice(idx, 1);
       } else {
-        localSavedIds.add(placeId);
+        localSavedPlaces.push(place);
       }
-      return Array.from(localSavedIds);
+      return [...localSavedPlaces];
     },
-    onMutate: async (placeId) => {
+    onMutate: async (place) => {
       const key = ['saved-places', user?.id];
       await queryClient.cancelQueries({ queryKey: key });
-      const prev = queryClient.getQueryData<string[]>(key) ?? [];
-      const next = prev.includes(placeId)
-        ? prev.filter((id) => id !== placeId)
-        : [...prev, placeId];
+      const prev = queryClient.getQueryData<Place[]>(key) ?? [];
+      const next = prev.some((p) => p.id === place.id)
+        ? prev.filter((p) => p.id !== place.id)
+        : [...prev, place];
       queryClient.setQueryData(key, next);
       return { prev };
     },
-    onError: (_err, _placeId, ctx) => {
+    onError: (_err, _place, ctx) => {
       if (ctx?.prev !== undefined && user?.id) {
         queryClient.setQueryData(['saved-places', user.id], ctx.prev);
       }

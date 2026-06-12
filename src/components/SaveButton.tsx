@@ -5,28 +5,29 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useSavedPlaces } from '@/hooks/useSavedPlaces';
 import { useSaveMutation } from '@/hooks/useSaveMutation';
 import { AuthModal } from '@/components/AuthModal';
+import type { Place } from '@/types';
 
-type Props = { placeId: string };
+type Props = { place: Place };
 
-export function SaveButton({ placeId }: Props) {
+export function SaveButton({ place }: Props) {
   const user = useAuthStore((s) => s.user);
   const [showModal, setShowModal] = useState(false);
 
-  const { data: savedIds = [] } = useSavedPlaces(user?.id);
+  const { data: savedPlaces = [] } = useSavedPlaces(user?.id);
   const { mutate: toggleSave, isPending } = useSaveMutation();
 
-  const isSaved = savedIds.includes(placeId);
+  const isSaved = savedPlaces.some((p) => p.id === place.id);
 
   function handleClick() {
     if (!user) {
       setShowModal(true);
       return;
     }
-    toggleSave(placeId);
+    toggleSave(place);
   }
 
   function handleLoginSuccess() {
-    toggleSave(placeId);
+    toggleSave(place);
   }
 
   return (

@@ -130,7 +130,7 @@ function PlaceDetailContent({ placeId }: { placeId: string }) {
 
       {/* 저장 버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 py-4 bg-white/90 backdrop-blur-sm border-t border-gray-100 z-30">
-        <SaveButton placeId={placeId} />
+        <SaveButton place={place} />
       </div>
     </div>
   );
