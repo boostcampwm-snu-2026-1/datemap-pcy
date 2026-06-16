@@ -61,6 +61,12 @@ function PlaceDetailContent({ placeId }: { placeId: string }) {
         >
           ← 뒤로
         </Link>
+        <Link
+          href="/saved"
+          className="absolute top-5 right-5 bg-black/25 backdrop-blur-sm text-white text-[12px] px-3 py-1.5 rounded-full z-10 outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+        >
+          저장 목록
+        </Link>
         <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
           <p className="text-white/60 text-[11px] font-medium tracking-[0.2em] uppercase mb-0.5">
             {place.category}
@@ -130,7 +136,7 @@ function PlaceDetailContent({ placeId }: { placeId: string }) {
 
       {/* 저장 버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 py-4 bg-white/90 backdrop-blur-sm border-t border-gray-100 z-30">
-        <SaveButton placeId={placeId} />
+        <SaveButton place={place} />
       </div>
     </div>
   );
