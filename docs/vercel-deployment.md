@@ -67,7 +67,7 @@ In Kakao Developers > Product Settings > Kakao Login:
 | --- | --- | --- |
 | `/api/cron/regions` | Daily 15:00 UTC | Seed and sync region catalog |
 | `/api/cron/naver-trend` | Daily 00:00 UTC | Refresh search volume and hot score |
-| `/api/cron/seoul-population` | Hourly | Refresh realtime congestion and hot score |
+| `/api/cron/seoul-population` | Daily 01:00 UTC | Refresh realtime congestion and hot score |
 | `/api/cron/region-images` | Weekly Sunday 16:00 UTC | Refresh region representative photos |
 
 After the first production deployment, run `/api/cron/regions` once from Vercel or locally with `Authorization: Bearer CRON_SECRET` so the region table is initialized before user traffic.
