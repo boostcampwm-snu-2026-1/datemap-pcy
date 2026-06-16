@@ -14,7 +14,16 @@ type KakaoPlace = {
   y: string;
 };
 
+type GoogleTextSearchPlace = {
+  id?: string;
+};
+
+type GooglePlaceDetails = {
+  photos?: Array<{ name?: string }>;
+};
+
 const KAKAO_CATEGORY_CODES = ['CE7', 'FD6', 'CT1', 'AT4', 'MT1'] as const;
+const GOOGLE_PHOTO_ENRICH_LIMIT = 12;
 
 const REGION_COORDS: Record<string, { x: string; y: string }> = {
   seongsu: { x: '127.0557', y: '37.5445' },
@@ -81,6 +90,87 @@ function toPlace(kakao: KakaoPlace, regionId: string): Place | null {
     lat,
     lng,
   };
+}
+
+function hasGooglePlacesKey() {
+  return !!process.env.GOOGLE_PLACES_API_KEY;
+}
+
+function photoProxyUrl(photoName: string) {
+  return `/api/google-place-photo?name=${encodeURIComponent(photoName)}`;
+}
+
+async function findGooglePlaceId(place: Place): Promise<string | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+
+  const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id',
+    },
+    body: JSON.stringify({
+      textQuery: `${place.name} ${place.address}`,
+      languageCode: 'ko',
+      locationBias: {
+        circle: {
+          center: { latitude: place.lat, longitude: place.lng },
+          radius: 300,
+        },
+      },
+      maxResultCount: 1,
+    }),
+    signal: AbortSignal.timeout(5000),
+  });
+
+  if (!response.ok) return null;
+
+  const data = await response.json() as { places?: GoogleTextSearchPlace[] };
+  return data.places?.[0]?.id ?? null;
+}
+
+async function findGooglePhotoName(googlePlaceId: string): Promise<string | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+
+  const response = await fetch(
+    `https://places.googleapis.com/v1/places/${encodeURIComponent(googlePlaceId)}?fields=photos&languageCode=ko&key=${apiKey}`,
+    { signal: AbortSignal.timeout(5000) },
+  );
+
+  if (!response.ok) return null;
+
+  const data = await response.json() as GooglePlaceDetails;
+  return data.photos?.[0]?.name ?? null;
+}
+
+async function enrichPlacesWithGooglePhotos(places: Place[]): Promise<Place[]> {
+  if (!hasGooglePlacesKey()) return places;
+
+  const enriched = [...places];
+  await Promise.all(
+    enriched.slice(0, GOOGLE_PHOTO_ENRICH_LIMIT).map(async (place, index) => {
+      try {
+        const googlePlaceId = await findGooglePlaceId(place);
+        if (!googlePlaceId) return;
+
+        const photoName = await findGooglePhotoName(googlePlaceId);
+        if (!photoName) return;
+
+        enriched[index] = {
+          ...place,
+          image_url: photoProxyUrl(photoName),
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[places] Google photo enrichment failed for ${place.id}:`, message);
+      }
+    }),
+  );
+
+  return enriched;
 }
 
 async function fetchCachedPlaces(regionId: string): Promise<Place[]> {
@@ -171,8 +261,9 @@ export async function GET(request: NextRequest) {
   try {
     const livePlaces = await fetchKakaoPlaces(regionId);
     if (livePlaces.length > 0) {
-      await upsertPlaces(livePlaces);
-      return NextResponse.json(livePlaces);
+      const places = await enrichPlacesWithGooglePhotos(livePlaces);
+      await upsertPlaces(places);
+      return NextResponse.json(places);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
