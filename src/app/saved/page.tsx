@@ -8,6 +8,7 @@ import { useSavedPlaces } from '@/hooks/useSavedPlaces';
 import { PlaceCard, PlaceCardSkeleton } from '@/components/PlaceCard';
 import { AuthModal } from '@/components/AuthModal';
 import { CourseEditor } from '@/components/CourseEditor';
+import { CourseSummaryCard } from '@/components/CourseSummaryCard';
 import KakaoMapDynamic from '@/components/KakaoMapDynamic';
 import type { Place } from '@/types';
 
@@ -134,6 +135,7 @@ export default function SavedPage() {
               )}
             </section>
 
+            <CourseSummaryCard places={coursePlaces} className="mb-4" />
             <CourseEditor places={coursePlaces} onChange={handleCourseOrderChange} />
           </div>
 
